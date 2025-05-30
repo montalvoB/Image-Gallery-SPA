@@ -1,9 +1,9 @@
-import type { IImageData } from "../MockAppData.ts";
+import type { IApiImageData } from "../../../backend/src/common/APIImageData.ts";
 import "./Images.css";
 import { Link } from "react-router";
 
 interface IImageGridProps {
-    images: IImageData[];
+    images: IApiImageData[];
 }
 
 export function ImageGrid(props: IImageGridProps) {
