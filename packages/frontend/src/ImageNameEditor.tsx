@@ -16,7 +16,12 @@ export function ImageNameEditor(props: INameEditorProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/images");
+      const response = await fetch(`/api/images/${props.imageId}/name`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: input }),
+      });
+      
       if (!response.ok) {
         throw new Error("Failed to fetch image data");
       }

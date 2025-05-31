@@ -9,36 +9,66 @@ interface IImageDocument {
 
 export class ImageProvider {
   private db: Db;
+  private imageCollection: Collection<IImageDocument>;
 
   constructor(mongoClient: any) {
     this.db = mongoClient.db(); // default db
+    this.imageCollection = this.db.collection<IImageDocument>("images");
   }
 
-  async getAllImages(): Promise<any[]> {
-    try {
-      const images = await this.db.collection("images").find().toArray();
+  async updateImageName(imageId: string, newName: string): Promise<number> {
+    const filter = { _id: new ObjectId(imageId) };
+    const update = { $set: { name: newName } };
 
-      // Extract all unique authorIds (usernames)
-      const authorUsernames = [...new Set(images.map((img) => img.authorId))];
+    const result = await this.imageCollection.updateOne(filter, update);
+    return result.matchedCount;
+  }
 
-      // Find users by their username field
-      const users = await this.db
-        .collection("users")
-        .find({ username: { $in: authorUsernames } })
-        .toArray();
+  async getAllImages(nameFilter?: string): Promise<any[]> {
+    const query = nameFilter
+      ? { name: { $regex: nameFilter, $options: "i" } }
+      : {};
+    const images = await this.db.collection("images").find(query).toArray();
 
-      // Map username to user object
-      const userMap = new Map(users.map((user) => [user.username, user]));
+    const authorIds = [...new Set(images.map((img) => img.authorId))];
 
-      return images.map((img) => ({
-        id: img._id.toString(),
-        src: img.src,
-        name: img.name,
-        author: userMap.get(img.authorId) || null,
-      }));
-    } catch (error) {
-      console.error("Error in getAllImages:", error);
-      throw error;
-    }
+    const users = await this.db
+      .collection("users")
+      .find({ username: { $in: authorIds } })
+      .toArray();
+
+    const userMap = new Map(users.map((user) => [user.username, user]));
+
+    return images.map((img) => ({
+      id: img._id.toString(),
+      src: img.src,
+      name: img.name,
+      author: userMap.get(img.authorId) || null,
+    }));
+  }
+
+  async getImagesByNameSubstring(substring: string): Promise<any[]> {
+    const regex = new RegExp(substring, "i"); // case-insensitive
+
+    const images = await this.db
+      .collection("images")
+      .find({ name: { $regex: regex } })
+      .toArray();
+
+    const authorIds = [...new Set(images.map((img) => img.authorId))];
+
+    const users = await this.db
+      .collection("users")
+      .find({ _id: { $in: authorIds } })
+      .toArray();
+
+    const userMap = new Map(users.map((user) => [user._id, user]));
+
+    return images.map((img) => ({
+      id: img._id.toString(),
+      src: img.src,
+      name: img.name,
+      author: userMap.get(img.authorId) || null,
+    }));
   }
 }

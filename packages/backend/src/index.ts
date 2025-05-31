@@ -5,6 +5,7 @@ import { ValidRoutes } from "./shared/ValidRoutes";
 import { IMAGES } from "./common/APIImageData";
 import { connectMongo } from "./connectMongo";
 import { ImageProvider } from "./ImageProvider";
+import { registerImageRoutes } from "./routes/imageRoutes";
 
 dotenv.config(); // Read the .env file in the current working directory, and load values into process.env.
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,7 @@ const mongoClient = connectMongo();
 const app = express();
 
 app.use(express.static(STATIC_DIR));
+app.use(express.json()); // Middleware to parse JSON request bodies
 let imageProvider: ImageProvider;
 
 mongoClient
@@ -20,6 +22,7 @@ mongoClient
   .then(() => {
     console.log("MongoDB connection established successfully.");
     imageProvider = new ImageProvider(mongoClient);
+    registerImageRoutes(app, imageProvider);
   })
   .catch((error) => {
     console.error("Error connecting to MongoDB:", error);
@@ -31,17 +34,6 @@ function waitDuration(numMs: number): Promise<void> {
 
 app.get("/api/hello", (req: Request, res: Response) => {
   res.send("Hello, World");
-});
-
-app.get("/api/images", async (req: Request, res: Response) => {
-  try {
-    await waitDuration(1000);
-    const images = await imageProvider.getAllImages();
-    res.json(images);
-  } catch (error) {
-    console.error("Failed to fetch images:", error);
-    res.status(500).json({ error: "Failed to fetch images" });
-  }
 });
 
 app.get(Object.values(ValidRoutes), async (req: Request, res: Response) => {
