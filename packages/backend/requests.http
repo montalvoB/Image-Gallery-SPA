@@ -10,7 +10,7 @@ Content-Type: application/json # Content-Type header is a must if you're sending
 { "a": 1, "b": 2 }
 
 ### Query parameter
-GET http://localhost:3000/api/images/search?name=dog
+GET http://localhost:3000/api/images?name=cat
 
 ### Query parameter and a header
 PUT http://localhost:3000/api/images/68393fdfbf10bf7f49003796/name
@@ -19,4 +19,29 @@ Content-Type: application/json
 {
   "name": "Chickens on a farm"
 }
+
+### Invalid ID example
+PUT http://localhost:3000/api/images/invalid-id/name
+Content-Type: application/json
+
+{
+  "name": "New Name"
+}
+
+### Bad request example
+PUT http://localhost:3000/api/images/647fcbd8a2d18c07a4dbd999/name
+Content-Type: application/json
+
+{
+  "wrongField": "Oops"
+}
+
+### Long request example
+PUT http://localhost:3000/api/images/647fcbd8a2d18c07a4dbd999/name
+Content-Type: application/json
+
+{
+  "name": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+
 

@@ -25,50 +25,28 @@ export class ImageProvider {
   }
 
   async getAllImages(nameFilter?: string): Promise<any[]> {
-    const query = nameFilter
-      ? { name: { $regex: nameFilter, $options: "i" } }
-      : {};
-    const images = await this.db.collection("images").find(query).toArray();
+  const query = nameFilter
+    ? { name: { $regex: nameFilter, $options: "i" } }
+    : {};
 
-    const authorIds = [...new Set(images.map((img) => img.authorId))];
+  const images = await this.imageCollection.find(query).toArray();
 
-    const users = await this.db
-      .collection("users")
-      .find({ username: { $in: authorIds } })
-      .toArray();
+  const authorIds = [...new Set(images.map((img) => img.authorId))];
 
-    const userMap = new Map(users.map((user) => [user.username, user]));
+  const users = await this.db
+    .collection("users")
+    .find({ username: { $in: authorIds } }) 
+    .toArray();
 
-    return images.map((img) => ({
-      id: img._id.toString(),
-      src: img.src,
-      name: img.name,
-      author: userMap.get(img.authorId) || null,
-    }));
-  }
+  const userMap = new Map(users.map((user) => [user.username, user]));
 
-  async getImagesByNameSubstring(substring: string): Promise<any[]> {
-    const regex = new RegExp(substring, "i"); // case-insensitive
+  return images.map((img) => ({
+    id: img._id.toString(),
+    src: img.src,
+    name: img.name,
+    author: userMap.get(img.authorId) || null,
+  }));
+}
 
-    const images = await this.db
-      .collection("images")
-      .find({ name: { $regex: regex } })
-      .toArray();
 
-    const authorIds = [...new Set(images.map((img) => img.authorId))];
-
-    const users = await this.db
-      .collection("users")
-      .find({ _id: { $in: authorIds } })
-      .toArray();
-
-    const userMap = new Map(users.map((user) => [user._id, user]));
-
-    return images.map((img) => ({
-      id: img._id.toString(),
-      src: img.src,
-      name: img.name,
-      author: userMap.get(img.authorId) || null,
-    }));
-  }
 }

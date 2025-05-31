@@ -21,14 +21,22 @@ export function ImageNameEditor(props: INameEditorProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: input }),
       });
-      
+
       if (!response.ok) {
-        throw new Error("Failed to fetch image data");
+        const errorData = await response.json().catch(() => null);
+        setError(errorData?.message || "Unknown error");
+        return;
+      }
+
+      // Only try to read body if not 204 No Content
+      if (response.status !== 204) {
+        await response.json(); 
       }
 
       props.onNameChange(input);
       setIsEditingName(false);
     } catch (err) {
+      console.error("Unexpected error:", err);
       setError("Error updating name. Please try again.");
     } finally {
       setIsLoading(false);
