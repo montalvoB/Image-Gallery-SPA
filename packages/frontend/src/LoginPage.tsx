@@ -1,22 +1,115 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router";
 import "./LoginPage.css";
 
-export function LoginPage() {
-    const usernameInputId = React.useId();
-    const passwordInputId = React.useId();
+type LoginPageProps = {
+  isRegistering: boolean;
+  onAuthSuccess: (token: string) => void;
+};
 
-    return (
-        <div>
-            <h2>Login</h2>
-            <form className="LoginPage-form">
-                <label htmlFor={usernameInputId}>Username</label>
-                <input id={usernameInputId}/>
+export function LoginPage({ isRegistering, onAuthSuccess }: LoginPageProps) {
+  const usernameInputId = React.useId();
+  const passwordInputId = React.useId();
 
-                <label htmlFor={passwordInputId}>Password</label>
-                <input id={passwordInputId} type="password" />
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-                <input type="submit" value="Submit"/>
-            </form>
-        </div>
-    );
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setErrorMessage("");
+    setIsPending(true);
+
+    try {
+      const endpoint = isRegistering ? "/auth/register" : "/auth/login";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {
+        // JSON parse failed
+        setErrorMessage("Unexpected server response.");
+        setIsPending(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setErrorMessage(data?.error || "Request failed. Please try again.");
+        setIsPending(false);
+        return;
+      }
+
+      const token = data?.token;
+      if (typeof token === "string") {
+        onAuthSuccess(token);
+      } else {
+        setErrorMessage("Invalid server response (no token)");
+      }
+    } catch (error) {
+      setErrorMessage("Network error. Please try again later.");
+      console.error("Error during submission:", error);
+    } finally {
+      setIsPending(false);
+    }
+  }
+
+  return (
+    <div>
+      <h2>{isRegistering ? "Register a new account" : "Login"}</h2>
+
+      <form className="LoginPage-form" onSubmit={handleSubmit}>
+        <label htmlFor={usernameInputId}>Username</label>
+        <input
+          id={usernameInputId}
+          name="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          disabled={isPending}
+        />
+
+        <label htmlFor={passwordInputId}>Password</label>
+        <input
+          id={passwordInputId}
+          type="password"
+          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={isPending}
+        />
+
+        <input type="submit" value="Submit" disabled={isPending} />
+      </form>
+
+      {errorMessage && (
+        <p
+          role="alert"
+          aria-live="assertive"
+          style={{ color: "red", marginTop: "0.5rem" }}
+        >
+          {errorMessage}
+        </p>
+      )}
+
+      <p>
+        {isRegistering ? (
+          <>
+            Have an account? <Link to="/login">Login here</Link>
+          </>
+        ) : (
+          <>
+            Don't have an account? <Link to="/register">Register here</Link>
+          </>
+        )}
+      </p>
+    </div>
+  );
 }

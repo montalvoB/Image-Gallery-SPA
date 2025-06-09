@@ -44,4 +44,86 @@ Content-Type: application/json
   "name": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 }
 
+### New user registration
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{ "username": "newuser", "password": "password" }
+
+
+### Register user successfully
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser1",
+  "password": "password"
+}
+
+### Register with missing fields
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser2"
+}
+
+### Register with existing user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "username": "chunkylover23",
+  "password": "password"
+}
+
+
+
+### Successful login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "chunkylover23",
+  "password": "password"
+}
+
+### Login with incorrect password
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser1",
+  "password": "wrongpassword"
+}
+
+### Login with non-existent user
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "nonexistent",
+  "password": "password"
+}
+
+### Login with missing password
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "bob"
+}
+
+### Missing Auth Token
+GET http://localhost:3000/api/images
+
+### Successful image rename
+PUT http://localhost:3000/api/images/68393fdfbf10bf7f49003792/name
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNodW5reWxvdmVyMjMiLCJpYXQiOjE3NDkzMjg4ODAsImV4cCI6MTc0OTQxNTI4MH0.nY5xkSK0YHTBYDlQeWZcYit3kkTjkemjpNnUcbYpgR4
+Content-Type: application/json
+
+{
+  "name": "Fluffy Sheep"
+}
+
 
